@@ -9,32 +9,48 @@ public class UserRespository {
     private static final String PASSWORD = "postgres";
 
     private static final String FIND_BY_ID_QUERY = """
-            SELECT * FROM users WHERE id = ?
-                """;
-
-    private static final String SAVE = """
-            INSERT INTO users(name, surname, age, username, password, inserted_date_at_utc)\s
-            values (?, ?, ?, ?, ?, ?);""";
-
-    private static final String DELETE_BY_ID = """
-            DELETE FROM users WHERE id = ?
-            """;
-
-    private static final String UPDATE_BY_ID = """
-            UPDATE users SET name = ? WHERE id = ?
-            """;
+        SELECT * FROM users WHERE id = ?
+    """;
 
     private static final String FIND_BY_ALL = """
-            SELECT * FROM users u
-            """;
+        SELECT * FROM users u
+    """;
+    private static final String SAVE = """
+        INSERT INTO users(name, surname, age, username, password, inserted_date_at_utc)\s
+        values (?, ?, ?, ?, ?, ?);
+    """;
 
+    private static final String UPDATE_BY_ID = """
+        UPDATE users SET name = ? WHERE id = ?
+    """;
 
+    private static final String DELETE_BY_ID = """
+        DELETE FROM users WHERE id = ?
+    """;
 
-    public List <User> findByAll () throws SQLException {
-        List<User> users = new ArrayList<>();
+    public User findById (Long id) throws SQLException {
+
         try (
-                Connection connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
-                PreparedStatement preparedStatement = connection.prepareStatement(FIND_BY_ALL)
+        Connection connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+        PreparedStatement preparedStatement = connection.prepareStatement(FIND_BY_ID_QUERY)
+        ) {
+            preparedStatement.setLong(1, id);
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                User user = new User();
+                while (resultSet.next()) {
+                    user.setId(resultSet.getLong("id"));
+                    user.setUserName(resultSet.getString("username"));
+                }
+                return user;
+            }
+        }
+    }
+
+        public List <User> findByAll () throws SQLException {
+        List<User> users = new ArrayList<>();
+            try (
+            Connection connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+            PreparedStatement preparedStatement = connection.prepareStatement(FIND_BY_ALL)
         ) {
                try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 while (resultSet.next()) {
@@ -54,43 +70,10 @@ public class UserRespository {
         }
     }
 
-
-
-
-
-    public void UpdateById (Long id, String name) throws SQLException {
-        try (
-                Connection connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
-                PreparedStatement preparedStatement = connection.prepareStatement(UPDATE_BY_ID)
-
-        ) {
-            preparedStatement.setLong(2,id);
-            preparedStatement.setString(1, name);
-            preparedStatement.execute();
-        }
-    }
-
-
-
-
-
-
-
-    public void DeleteById(Long id) throws SQLException {
-        try (
-                Connection connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
-                PreparedStatement preparedStatement = connection.prepareStatement(DELETE_BY_ID)
-        ) {
-            preparedStatement.setLong(1, id);
-            preparedStatement.execute();
-        }
-
-    }
-
     public void save(User user) throws SQLException {
         try (
-                Connection connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
-                PreparedStatement preparedStatement = connection.prepareStatement(SAVE)
+        Connection connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+        PreparedStatement preparedStatement = connection.prepareStatement(SAVE)
         ) {
             preparedStatement.setString(1, user.getName());
             preparedStatement.setString(2, user.getSurname());
@@ -102,27 +85,27 @@ public class UserRespository {
         }
     }
 
-
-
-
-    public User findById (Long id) throws SQLException {
-
+    public void UpdateById (Long id, String name) throws SQLException {
         try (
-                Connection connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
-                PreparedStatement preparedStatement = connection.prepareStatement(FIND_BY_ID_QUERY)
+        Connection connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+        PreparedStatement preparedStatement = connection.prepareStatement(UPDATE_BY_ID)
+
+        ) {
+            preparedStatement.setLong(2,id);
+            preparedStatement.setString(1, name);
+            preparedStatement.execute();
+        }
+    }
+
+    public void DeleteById(Long id) throws SQLException {
+        try (
+        Connection connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+        PreparedStatement preparedStatement = connection.prepareStatement(DELETE_BY_ID)
         ) {
             preparedStatement.setLong(1, id);
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                User user = new User();
-                while (resultSet.next()) {
-                    user.setId(resultSet.getLong("id"));
-                    user.setUserName(resultSet.getString("username"));
-                }
-                return user;
-            }
+            preparedStatement.execute();
         }
     }
 }
-        //Connection connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
 
 
